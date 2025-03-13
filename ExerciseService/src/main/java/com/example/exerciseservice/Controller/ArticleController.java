@@ -2,21 +2,21 @@ package com.example.exerciseservice.Controller;
 
 import com.example.exerciseservice.Model.Article;
 import com.example.exerciseservice.Service.ArticleService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/articles")
+@RequiredArgsConstructor
 public class ArticleController {
 
     private final ArticleService articleService;
-
-    public ArticleController(ArticleService articleService) {
-        this.articleService = articleService;
-    }
 
     // 1. Get all NewsArticles
     @GetMapping("/get")
@@ -27,7 +27,12 @@ public class ArticleController {
 
     // 2. Add a NewsArticle
     @PostMapping("/add")
-    public ResponseEntity addArticle(@RequestBody Article article) {
+    public ResponseEntity addArticle(@RequestBody @Valid Article article, Errors errors) {
+        if (errors.hasErrors()) {
+            String message = errors.getFieldError().getDefaultMessage();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+
         boolean isAdded = articleService.addArticle(article);
         if (!isAdded) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Article with this ID already exists.");
@@ -37,7 +42,12 @@ public class ArticleController {
 
     // 3. Update a NewsArticle
     @PutMapping("/update/{id}")
-    public ResponseEntity updateArticle(@PathVariable int id, @RequestBody Article article) {
+    public ResponseEntity updateArticle(@PathVariable int id, @RequestBody @Valid Article article, Errors errors) {
+        if (errors.hasErrors()) {
+            String message = errors.getFieldError().getDefaultMessage();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+
         boolean isUpdated = articleService.updateArticle(id, article);
         if (isUpdated) {
             return ResponseEntity.status(HttpStatus.OK).body("Article updated successfully.");
